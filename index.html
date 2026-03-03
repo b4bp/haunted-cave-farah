@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>كهف فرح - اللغز المرعب</title>
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      background:#000;
+      color:#fff;
+      min-height:100vh;
+      overflow:hidden;
+      position:fixed;
+      inset:0;
+    }
+/* ===== سقوط الإيموجي + فِيد إن ===== */
+#fadeCurtain{
+  position:absolute;
+  inset:0;
+  background:#000;
+  z-index:60;
+  opacity:1;
+  pointer-events:none;
+}
+
+/* تشغيل تأثير فتح العين (واقعي) */
+/* “فتح عين” واقعي: دوخة + رمشتين + ضباب خفيف */
+#fadeCurtain.eye-open{
+  animation: eyeOpen 10.6s ease-in-out forwards;
+}
+
+@keyframes eyeOpen{
+  /* ظلام كامل */
+  0%   { opacity:1;   filter: blur(10px) brightness(.55); }
+  /* أول فتحة: تشوف شوي بس مو واضح */
+  14%  { opacity:.55; filter: blur(8px)  brightness(.70); }
+  /* رمشة قوية */
+  24%  { opacity:.97; filter: blur(12px) brightness(.55); }
+  /* فتح أكثر + وضوح بسيط */
+  38%  { opacity:.40; filter: blur(7px)  brightness(.78); }
+  /* رمشة خفيفة */
+  50%  { opacity:.78; filter: blur(9px)  brightness(.66); }
+  /* تتعود العين */
+  68%  { opacity:.22; filter: blur(4px)  brightness(.92); }
+  /* شبه مفتوح */
+  84%  { opacity:.10; filter: blur(2px)  brightness(1); }
+  /* مفتوح بالكامل */
+  100% { opacity:0;   filter: blur(0px)  brightness(1); }
+}
+
+
+
+/* حواف مظلمة وقت فتح العين */
+#fadeCurtain::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: radial-gradient(circle at center,
+    rgba(0,0,0,0) 40%,
+    rgba(0,0,0,.55) 75%,
+    rgba(0,0,0,.85) 100%
+  );
+  opacity:.9;
+  pointer-events:none;
+}
+
+
+
+#fallEmoji{
+  position:absolute;
+  left:50%;
+  top:0;
+  transform:translate(-50%, -50%);
+  font-size:5rem;
+  z-index:65;
+  opacity:0;
+  pointer-events:none;
+}
+
+#fallEmoji.drop{
+  animation: fall 1.5s ease-in forwards;
+}
+
+/* نفس كودك تقريباً */
+@keyframes fall {
+  0%   { transform: translate(-50%, -120px); opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translate(-50%, 140px); opacity: 0; }
+}
+#fallEmoji.slam{
+  animation: emojiSlam .35s ease forwards;
+}
+@keyframes emojiSlam{
+  0%{ transform:translate(-50%, -50%) scale(1); }
+  50%{ transform:translate(-50%, -50%) scale(.85); }
+  100%{ transform:translate(-50%, -50%) scale(1); }
+}
+/* ================================ */
+    .story-container{
+      position:relative;
+      width:100%;
+      height:100%;
+      max-width:520px;
+      margin:0 auto;
+      background:#000;
+      overflow:hidden;
+      box-shadow:0 0 30px rgba(0,0,0,.85);
+    }
+
+    /* شاشة بدء (لتفعيل الصوت) */
+    .start-screen{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap:14px;
+      z-index:9999;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(255,255,255,.08), transparent 45%),
+        linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.92));
+      opacity:1;
+      transition:opacity .7s ease;
+    }
+    .start-screen.hidden{ opacity:0; pointer-events:none; }
+    .start-title{
+      font-size:1.2rem;
+      letter-spacing:.5px;
+      opacity:.95;
+      text-shadow:0 0 14px rgba(255,255,255,.18);
+    }
+    .start-hint{
+      font-size:.95rem;
+      opacity:.8;
+      max-width:340px;
+      text-align:center;
+      line-height:1.7;
+    }
+
+    .scenes{ position:relative; width:100%; height:100%; }
+
+    .scene{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      opacity:0;
+      visibility:hidden;
+      transition: opacity 1.1s cubic-bezier(.4,0,.2,1), visibility 1.1s;
+      z-index:1;
+      overflow:hidden;
+
+      /* PNG خلفية لكل مشهد */
+      background-position:center;
+      background-repeat:no-repeat;
+      background-size:cover;
+      background-color:#000;
+    }
+    .scene.active{
+      opacity:1;
+      visibility:visible;
+      z-index:10;
+    }
+
+    /* تغميق + سكون */
+    .scene::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:rgba(0,0,0,.58);
+      z-index:2;
+      pointer-events:none;
+    }
+    .scene::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      z-index:3;
+      pointer-events:none;
+      opacity:0;
+      transition:opacity .2s;
+      background:rgba(255,255,255,.05);
+      mix-blend-mode:overlay;
+      animation:sceneStatic .18s steps(2) infinite;
+    }
+    .scene.static-on::after{ opacity:1; }
+
+    @keyframes sceneStatic{
+      0%{ filter:contrast(115%) brightness(105%); transform:translate(0,0);}
+      25%{ filter:contrast(150%) brightness(112%); transform:translate(-1px,1px);}
+      50%{ filter:contrast(120%) brightness(100%); transform:translate(1px,-1px);}
+      75%{ filter:contrast(165%) brightness(116%); transform:translate(-1px,-1px);}
+      100%{ filter:contrast(115%) brightness(105%); transform:translate(0,0);}
+    }
+
+    .content{
+      position:relative;
+      z-index:20;
+      width:100%;
+      max-width:420px;
+      text-align:center;
+      padding:18px;
+    }
+
+    h1,h2,p{
+      line-height:1.7;
+      font-weight:300;
+      margin-bottom:16px;
+      text-shadow:0 0 12px rgba(255,255,255,.18);
+    }
+
+    .glitch{
+      font-weight:700;
+      animation:glitch 2.8s infinite;
+      text-shadow:2px 0 rgba(255,0,0,.65), -2px 0 rgba(0,110,255,.65);
+    }
+    @keyframes glitch{
+      0%,100%{ transform:translate(0); }
+      33%{ transform:translate(-2px,2px); }
+      66%{ transform:translate(2px,-2px); }
+    }
+
+    .typewriter{
+  /* نفس ستايلك تقريباً */
+  margin: 0 auto;
+  letter-spacing: .12em;
+  font-size: 1.25rem;
+
+  /* ✅ مهم: يخلي النص يلف لسطرين/ثلاثة */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+
+  /* ✅ عشان ما يطلع برا */
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+
+  /* نفس فكرة المؤشر */
+  border-left: 2px solid rgba(255,255,255,.35);
+
+  /* ✅ تايبنق شبيه كودك (steps) بس يشتغل مع التفاف السطور */
+  animation: typing 3.2s steps(42, end) forwards;
+}
+   @keyframes typing{
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+    .btn{
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff;
+      padding:14px 26px;
+      font-size:1.05rem;
+      border-radius:999px;
+      cursor:pointer;
+      transition:transform .18s ease, background .18s ease, border-color .18s ease;
+      box-shadow:0 0 18px rgba(255,0,0,.18);
+      letter-spacing:.6px;
+      user-select:none;
+    }
+    .btn:hover{ background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.28); transform:scale(1.03); }
+    .btn:active{ transform:scale(.98); }
+
+    .btn-row{
+      display:flex;
+      gap:12px;
+      justify-content:center;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+
+    .btn-pink{
+      border-color:#ff69b4;
+      background:rgba(255,105,180,.10);
+      box-shadow:0 0 26px rgba(255,105,180,.45);
+    }
+
+    /* فلاشات */
+    .overlay{ position:absolute; inset:0; z-index:400; pointer-events:none; opacity:0; transition:opacity .12s; }
+    .overlay.red{ background:red; }
+    .overlay.white{ background:white; }
+    .overlay.active{ opacity:.35; }
+
+    /* كاميرا HUD خفيف */
+    .camera-overlay{
+      position:absolute; inset:0;
+      pointer-events:none;
+      z-index:300;
+      opacity:0;
+      transition:opacity .25s ease;
+    }
+    .camera-overlay.active{ opacity:1; }
+    .scanlines{
+      position:absolute; inset:0;
+      background:repeating-linear-gradient(0deg, rgba(0,0,0,.12) 0px, rgba(0,255,0,.05) 1px, rgba(0,0,0,.12) 2px);
+      animation:scanlines 8s linear infinite;
+    }
+    @keyframes scanlines{ 0%{ background-position:0 0 } 100%{ background-position:0 10px } }
+    .hud{
+      position:absolute; inset:0;
+      color:#0f0;
+      font-family:"Courier New", monospace;
+      font-size:12px;
+      text-shadow:0 0 6px #0f0;
+    }
+    .hud .topL{ position:absolute; top:16px; left:16px; display:flex; align-items:center; gap:6px; }
+    .dot{ width:10px; height:10px; background:red; border-radius:50%; animation:blink 1s infinite; }
+    @keyframes blink{ 0%,100%{opacity:1} 50%{opacity:.35} }
+    .hud .topR{ position:absolute; top:16px; right:16px; }
+    .hud .botL{ position:absolute; bottom:16px; left:16px; opacity:.85; }
+    .hud .botR{ position:absolute; bottom:16px; right:16px; opacity:.85; }
+
+    /* شاشة قفل النهاية */
+    .lock-screen{
+      position:absolute; inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#000;
+      z-index:9000;
+      opacity:0;
+      visibility:hidden;
+      transition:opacity .45s ease, visibility .45s ease;
+    }
+    .lock-screen.active{ opacity:1; visibility:visible; }
+    .lock-screen p{
+      font-size:1.7rem;
+      text-shadow:0 0 14px rgba(255,105,180,.35);
+    }
+
+    /* هدية PNG */
+    #giftPng{
+      display:none;
+      width:min(280px, 74vw);
+      height:auto;
+      cursor:pointer;
+      filter:drop-shadow(0 0 26px rgba(255,105,180,.62));
+      transition:transform .25s ease;
+      user-select:none;
+    }
+    #giftPng:hover{ transform:scale(1.05); }
+    #giftPng:active{ transform:scale(.98); }
+
+    /* ملاحظة صغيرة داخل اللعبة */
+    .subtle{
+      font-size:.95rem;
+      opacity:.85;
+      margin-top:-6px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="story-container">
+
+    <!-- overlays -->
+    <div class="overlay red" id="redFlash"></div>
+    <div class="overlay white" id="whiteFlash"></div>
+
+    <!-- camera -->
+    <div class="camera-overlay" id="cameraOverlay">
+      <div class="scanlines"></div>
+      <div class="hud">
+        <div class="topL"><span class="dot"></span><span>REC</span></div>
+        <div class="topR" id="camTime">00:00:00</div>
+        <div class="botL">CAVE-CAM / CH02</div>
+        <div class="botR">BAT ■■■□</div>
+      </div>
+    </div>
+
+    <!-- start screen -->
+    <div class="start-screen" id="startScreen">
+      <div class="start-title glitch">تسجيل… داخل كهف</div>
+      <div class="start-hint">اضغطي "ابدا"</div>
+      <button class="btn btn-pink" id="startBtn">ابدا</button>
+      <div class="subtle">نصيحه: سماعات 🎧</div>
+    </div>
+
+    <!-- lock -->
+    <div class="lock-screen" id="lockScreen">
+      <p class="glitch" id="lockText">انتهى.</p>
+    </div>
+
+    <div class="scene static-on" id="sceneWake">
+  <!-- طبقة فِيد إن (سواد يروح تدريجي) -->
+  <div id="fadeCurtain"></div>
+
+  <!-- إيموجي السقوط -->
+  <div id="fallEmoji" aria-hidden="true">💃🏻</div>
+
+  <div class="content">
+    <p class="typewriter" id="wakeLine">…صوت حجر يطيح، وبعده هدوء</p>
+    <p id="wakeLine2" style="display:none;">تفتحين عينج… والكهف قدامج</p>
+    <button class="btn" id="wakeBtn" style="display:none;">قومي</button>
+  </div>
+</div>
+
+      <!-- Scene: Hub -->
+      <div class="scene static-on" id="sceneHub">
+        <div class="content">
+          <h2 class="glitch">الكهف هادي...</h2>
+          <p id="hubText">قطرات ماي… وخطوات بعيده وكان احد يراقبج.</p>
+          <div class="btn-row">
+            <button class="btn" data-go="pathLeft">اروح يسار</button>
+            <button class="btn" data-go="pathRight">اروح يمين</button>
+            <button class="btn" data-go="pathDown">انزل تحت</button>
+          </div>
+          <p class="subtle">كل قرار يفتح طريق… وبعض الطرق ما ترجع.</p>
+        </div>
+      </div>
+
+      <!-- Scene: Node -->
+<div class="scene static-on" id="sceneNode">
+  <div class="content">
+
+    <!-- ✅ صورة الحدث (تطلع وتختفي) -->
+    <img id="nodeEventImg" alt="" style="display:none; width:100%; max-width:420px; border-radius:14px; margin:0 auto 14px; border:1px solid rgba(255,255,255,.12); box-shadow:0 0 24px rgba(0,0,0,.7);" />
+
+    <p class="typewriter" id="nodeText">...</p>
+    <div class="btn-row" id="nodeChoices"></div>
+    <button class="btn" id="nodeNext" style="display:none;">كمل</button>
+  </div>
+</div>
+
+      <!-- Scene: Gift / Love -->
+      <div class="scene" id="sceneLove">
+        <div class="content">
+          <h2 style="margin-bottom:10px;">وصلتي…</h2>
+          <p id="loveIntro" style="display:none;"></p>
+
+          <img id="giftPng" src="images/gift.png" alt="gift" />
+
+          <div id="loveMsgBox" style="display:none; margin-top:18px;">
+            <p class="glitch" style="color:#ff69b4;">احبج</p>
+            <p id="loveMessage"></p>
+            <button class="btn btn-pink" id="closeBtn">بحفض الرحمن</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // ===================== غيّر هذي المسارات على كيفك =====================
+  const ASSETS = {
+    // صور خلفيات (PNG) — حطها بمجلد images/
+    backgrounds: {
+      sceneWake: "images/wake.png",         // لقطة فتحة العين داخل كهف
+      sceneHub: "images/hub.png",           // منتصف الكهف
+      sceneNode: "images/node.png",         // مشاهد القرارات
+      sceneLove: "images/love.png"          // نهاية رومانسية
+    },
+
+    // أصوات — حطها بمجلد audio/
+    audio: {
+      drip: "audio/water-drips.mp3",        // قطرات ماء (Loop)
+      fall: "audio/fall.mp3",               // سقوط بالبداية
+      rumble: "audio/rumble.mp3",           // همهمة/هواء كهف (Loop خفيف)
+      step: "audio/step.mp3",               // خطوة/نقرة قرار
+      whisper: "audio/whisper.mp3",         // همس مخيف
+      hit: "audio/hit.mp3",                 // فلاش/صدمة
+      win: "audio/win.mp3"    ,              // صوت لطيف للنهاية
+       rockClack: "audio/rock-clack.mp3",
+      
+      
+    }
+  };
+
+  // اسم الحبيبة (ممكن يجي من الرابط ?name=فرح)
+  const urlName = new URLSearchParams(location.search).get("name");
+  const LOVER_NAME = (urlName && urlName.trim()) ? urlName.trim() : "احبك";
+
+  // رسالة الحب النهائية
+  const LOVE_LETTER = `اتمنى…
+انج استمتعي اكثر من انج خفتي:
+وعلشان اثبت لج اذا ضاع الطريق حبج يدلني احبج لاخر العمر ❤️`;
+
+  // ===================== عناصر =====================
+  const scenes = {
+    wake: document.getElementById("sceneWake"),
+    hub: document.getElementById("sceneHub"),
+    node: document.getElementById("sceneNode"),
+    love: document.getElementById("sceneLove")
+  };
+
+  const startScreen = document.getElementById("startScreen");
+  const startBtn = document.getElementById("startBtn");
+
+  const cameraOverlay = document.getElementById("cameraOverlay");
+  const camTime = document.getElementById("camTime");
+
+  const redFlash = document.getElementById("redFlash");
+  const whiteFlash = document.getElementById("whiteFlash");
+
+  const wakeLine2 = document.getElementById("wakeLine2");
+  const wakeBtn = document.getElementById("wakeBtn");
+
+  const nodeText = document.getElementById("nodeText");
+  const nodeChoices = document.getElementById("nodeChoices");
+  const nodeNext = document.getElementById("nodeNext");
+
+  const giftPng = document.getElementById("giftPng");
+  const loveIntro = document.getElementById("loveIntro");
+  const loveMsgBox = document.getElementById("loveMsgBox");
+  const loveMessage = document.getElementById("loveMessage");
+  const closeBtn = document.getElementById("closeBtn");
+
+  const lockScreen = document.getElementById("lockScreen");
+  const lockText = document.getElementById("lockText");
+
+  // ===================== Audio (HTMLAudio) =====================
+  const SFX = {};
+  function makeAudio(src, loop=false, vol=0.6){
+    const a = new Audio(src);
+    a.preload = "auto";
+    a.loop = loop;
+    a.volume = vol;
+    return a;
+  }
+
+  function loadAudio(){
+    SFX.drip = makeAudio(ASSETS.audio.drip, true, 0.55);
+    SFX.rumble = makeAudio(ASSETS.audio.rumble, true, 0.20);
+    SFX.fall = makeAudio(ASSETS.audio.fall, false, 0.90);
+    SFX.step = makeAudio(ASSETS.audio.step, false, 0.55);
+    SFX.whisper = makeAudio(ASSETS.audio.whisper, false, 0.55);
+    SFX.hit = makeAudio(ASSETS.audio.hit, false, 0.80);
+    SFX.win = makeAudio(ASSETS.audio.win, false, 0.70);
+  }
+
+  function play(a){
+    try{
+      a.currentTime = 0;
+      a.play().catch(()=>{});
+    }catch(e){}
+  }
+
+  // ===================== خلفيات + سكون =====================
+  function applySceneLook(sceneId){
+    const el = document.getElementById(sceneId);
+    if(!el) return;
+    const bg = ASSETS.backgrounds[sceneId];
+    if(bg) el.style.backgroundImage = `url('${bg}')`;
+  }
+
+  // ===================== تبديل المشاهد =====================
+  let currentScene = null;
+  function showScene(key){
+    Object.values(scenes).forEach(s => s.classList.remove("active"));
+    const el = scenes[key];
+    el.classList.add("active");
+    currentScene = key;
+
+    // كاميرا تشتغل في الرعب أكثر
+    if(key === "wake" || key === "hub" || key === "node"){
+      cameraOverlay.classList.add("active");
+    }else{
+      cameraOverlay.classList.remove("active");
+    }
+
+    // خلفيات
+    if(key === "wake") applySceneLook("sceneWake");
+    if(key === "hub") applySceneLook("sceneHub");
+    if(key === "node") applySceneLook("sceneNode");
+    if(key === "love") applySceneLook("sceneLove");
+  }
+
+  function flash(type="red", ms=90){
+    const el = (type === "white") ? whiteFlash : redFlash;
+    el.classList.add("active");
+    setTimeout(()=>el.classList.remove("active"), ms);
+  }
+
+  function restartTypewriter(el){
+    el.classList.remove("typewriter");
+    void el.offsetWidth;
+    el.classList.add("typewriter");
+  }
+
+  // ===================== قصة / قرارات متشعبة (Nodes) =====================
+  // كل عقدة: نص + اختيارات تودّي لعقد ثانية + (اختياري) مؤثر صوتي/فلاش
+  const NODES = {
+    // نقطة انطلاق
+    pathLeft: {
+  bg: "images/left-path.png",
+  enterSfx: "whisper",
+  eventImg: "images/left-wet-wall.png",
+  text: "يسارج… ممر ضيق، هوا بارد وقطرات اقرب... تحسين احد يمشي معاج.",
+  choices: [
+    { label:"اسمعي للهمس", next:"leftWhisper", sfx:"whisper" },
+    { label:"امشي بسرعه", next:"leftRun", sfx:"run" }
+  ]
+},
+
+leftRun: {
+  bg: "images/left-run.png",
+  enterSfx: "stumble",
+  eventImg: "images/rocks.png",   // ✅ هنا تحط صورة حجارة
+  text: "تسرعين… رجلج تعلق بحجر. طقه! صوت يتردد داخل الكهف.",
+  choices: [
+    { label:"كملي رغم الالم", next:"painPush", sfx:"rockClack", flash:"red" },
+    { label:"توقفين تاخذين انفاسج", next:"breathe", sfx:"drip" }
+  ]
+},
+    leftWhisper: {
+      text: "الهمس يقول: (لا تلفتين… لا تلفتين)… بس عينج تبيين تتاكدين.",
+      choices: [
+        { label:"التفت", next:"leftTurn", sfx:"hit", flash:"white" },
+        { label:"اتجاهل", next:"leftIgnore", sfx:"step" }
+      ]
+    },
+    leftTurn: {
+      text: " ما شفتي أحد… بس حسيتي بانفاس.........",
+      choices: [
+        { label:"اقرا النقش على الجدار", next:"glyphPuzzle", sfx:"step" },
+        { label:"اشلع للممر الثاني", next:"crossToHub", sfx:"step" }
+      ]
+    },
+    leftIgnore: {
+      text: "تجاهلتي… بس الهمس صار وراج. فجأه: لييت خفيف بعيد… كانه مخرج.",
+      choices: [
+        { label:"اروح لليت", next:"lightGate", sfx:"step" },
+        { label:"اختبر الطريق بعصايه", next:"stickTest", sfx:"step" }
+      ]
+    },
+    leftRun: {
+      text: "تسرعين… رجلج تعلق بحجر طقه! صوت يتردد داخل الكهف.",
+      choices: [
+        { label:"اكمل رغم الالم", next:"painPush", sfx:"hit", flash:"red" },
+        { label:"اوقف واخذ انفاسي", next:"breathe", sfx:"drip" }
+      ]
+    },
+
+    // يمين
+    pathRight: {
+      text: "يمينج… ممر واسع بس فيه اثار خدوش على الصخور… وريحه رطوبه ثقيله.",
+      choices: [
+        { label:"اشوف اثار الخدوش", next:"scratchTrail", sfx:"step" },
+        { label:"ادور على باب ثاني", next:"sideDoor", sfx:"step" }
+      ]
+    },
+    scratchTrail: {
+      text: "الخدوش توديج لبوابه حجر… عليها ثلاث رموز: عين، قطره ، قلب.",
+      choices: [
+        { label:"اختار (العين)", next:"doorEye", sfx:"whisper" },
+        { label:"اختار (القطره)", next:"doorDrop", sfx:"drip" },
+        { label:"اختار (القلب)", next:"doorHeart", sfx:"step" }
+      ]
+    },
+    sideDoor: {
+      text: "لقيتي فتحه صغيره … تسمعين قطرات + صوت سلسله خفيف… كانه فخ.",
+      choices: [
+        { label:"ادخل بحذر", next:"trapRoom", sfx:"step" },
+        { label:"ارجع للنص", next:"crossToHub", sfx:"step" }
+      ]
+    },
+
+    // تحت
+    pathDown: {
+      text: "تحت… درج مكسور. كل خطوه… صدى. وارض مبلوله .",
+      choices: [
+        { label:"انزل بهدوء", next:"downCareful", sfx:"step" },
+        { label:"انزل بسرعه", next:"downFast", sfx:"hit", flash:"red" }
+      ]
+    },
+    downCareful: {
+      text: "نزولج الهادي كشف فتحه مخفيه… عليها نقش: (قولي احبك عشان يفتح).",
+      choices: [
+        { label:`اقول: ${LOVER_NAME}`, next:"nameUnlock", sfx:"win" },
+        { label:"اصمها", next:"silencePunish", sfx:"whisper" }
+      ]
+    },
+    downFast: {
+      text: "نزول سريع… زلقتي! بس مسكتي نفسج. عيسى يصرخ: لا تعيدينها.",
+      choices: [
+        { label:"اكمل بعقل", next:"downCareful", sfx:"step" },
+        { label:"الف ورا", next:"crossToHub", sfx:"step" }
+      ]
+    },
+
+    // ألغاز بسيطة (تقدر تزيد)
+    glyphPuzzle: {
+      text: "النقش يقول: (الصدق يفتح… والخوف يقفل). قدامج صندوق خشب عليه قفلين.",
+      choices: [
+        { label:"افتح قفل الصدق", next:"truthLock", sfx:"step" },
+        { label:"افتح قفل الخوف", next:"fearLock", sfx:"hit", flash:"white" }
+      ]
+    },
+    truthLock: {
+      text: "قفل الصدق فتح… طلع مفتاح حديد عليه (♥).",
+      choices: [
+        { label:"اخذ المفتاح", next:"gotKeyHeart", sfx:"win" }
+      ]
+    },
+    fearLock: {
+      text: "قفل الخوف عض ايدج (مجازا)… صوت حاد… ورجه!",
+      choices: [
+        { label:"اشلع", next:"crossToHub", sfx:"hit", flash:"red" }
+      ]
+    },
+
+    // أبواب الرموز
+    doorEye: {
+      text: "العين… تخليج تشوفين اللي ما ودج تشوفينه. ظل مر بسرعه!",
+      choices: [
+        { label:"(اغمض)", next:"blindWalk", sfx:"whisper" },
+        { label:"اواجه", next:"stareDown", sfx:"hit", flash:"white" }
+      ]
+    },
+    doorDrop: {
+      text: " صوت الماي صار حولج. شي يتحرك تحت !",
+      choices: [
+        { label:"اطلع من الممر", next:"crossToHub", sfx:"step" },
+        { label:"امشي فوق الحواف", next:"edgeWalk", sfx:"step" }
+      ]
+    },
+    doorHeart: {
+      text: "... الباب ما يفتح الا اذا معاج مفتاح (♥).",
+      choices: [
+        { label:"اجرب الباب", next:"needKey", sfx:"step" },
+        { label:"ارجع ادور مفتاح", next:"crossToHub", sfx:"step" }
+      ]
+    },
+    gotKeyHeart: {
+      text: "المفتاح صار معاج تحسين ان الوضع صار اهدى شوي.",
+      choices: [
+        { label:"ارجع لبوابه الرموز", next:"scratchTrail", sfx:"step" }
+      ]
+    },
+    needKey: {
+      text: "بدون المفتاح… الباب يسكر عليج . لازم تلقين (♥).",
+      choices: [
+        { label:"برجع", next:"crossToHub", sfx:"step" }
+      ]
+    },
+
+    // فخ
+    trapRoom: {
+      text: "أول ما دخلتي… (طق!) الباب قفل. قدامج لغز: 685 + 854 = ؟",
+      choices: [
+        { label:"1539", next:"trapPass", sfx:"win" },
+        { label:"1538", next:"trapFail", sfx:"hit", flash:"red" }
+      ]
+    },
+    trapPass: {
+      text: "فتح الباب… ومعاه ورقه مكتوب: (الطريق للنور… يمر من الاسم).",
+      choices: [
+        { label:"ارجع للدرج تحت", next:"pathDown", sfx:"step" },
+        { label:"ارجع للنص", next:"crossToHub", sfx:"step" }
+      ]
+    },
+    trapFail: {
+      text: "صوت سلسله والهوا صار اكثر. لحفي نفسج!",
+      choices: [
+        { label:"اركض!", next:"crossToHub", sfx:"hit", flash:"white" }
+      ]
+    },
+
+    // نهايات متقاربة
+    lightGate: {
+      text: "الليت طلع مو مخرج… طلع شمعه بروحها... وتحتها رساله: (اذا تبين النجاه... اختاري الاسم).",
+      choices: [
+        { label:`اقول: ${LOVER_NAME}`, next:"nameUnlock", sfx:"win" },
+        { label:"اخذ الشمعه واروح", next:"crossToHub", sfx:"step" }
+      ]
+    },
+    stickTest: {
+      text: "العصا ضربت الارض... وطلع صوت صدى... كان فيه حفره لو خطيتي كان طحتي.",
+      choices: [
+        { label:"الف يمين", next:"pathRight", sfx:"step" },
+        { label:"ارجع للنص ", next:"crossToHub", sfx:"step" }
+      ]
+    },
+    painPush: {
+      text: "كملتي رغم الالم... وشفتي صندوق صغير… عليه قلب محفور.",
+      choices: [
+        { label:"افتحه", next:"truthLock", sfx:"step" },
+        { label:"اهده", next:"crossToHub", sfx:"step" }
+      ]
+    },
+    breathe: {
+      text: "هدوئج رجع لج السيطره… بس الهمس للحين موجود.",
+      choices: [
+        { label:"اكمل يسار", next:"leftWhisper", sfx:"whisper" },
+        { label:"ارجع", next:"crossToHub", sfx:"step" }
+      ]
+    },
+
+    blindWalk: {
+      text: "غمضتي سمعج صار اقوى. خطوات؟ ولا قطرات؟ الاثنين!",
+      choices: [
+        { label:"افتح عيني", next:"stareDown", sfx:"hit", flash:"white" },
+        { label:"امشي على الصوت", next:"doorDrop", sfx:"drip" }
+      ]
+    },
+    stareDown: {
+      text: "واجهتي… الظل رجع ورا. كانه يخاف منج.",
+      choices: [
+        { label:"اكمل للبوابه", next:"doorHeart", sfx:"step" },
+        { label:"ارجع", next:"crossToHub", sfx:"step" }
+      ]
+    },
+    edgeWalk: {
+      text: "مشيتي على الحواف… ووصلتي لباب .",
+      choices: [
+        { label:"احاول افتح الباب", next:"doorHeart", sfx:"step" }
+      ]
+    },
+
+    silencePunish: {
+      text: "في شيء صار عندج حلين يا انج تقولين احبك او تنحاشين",
+      choices: [
+        { label:`اقول: ${LOVER_NAME}`, next:"nameUnlock", sfx:"win" },
+        { label:"انحش", next:"crossToHub", sfx:"step" }
+      ]
+    },
+
+    nameUnlock: {
+      text: `اول ما قلتي "${LOVER_NAME}"…   هدووء وباب مخفي فتح.`,
+      choices: [
+        { label:"ادخلي", next:"finalDoor", sfx:"win" }
+      ]
+    },
+
+    finalDoor: {
+      text: "ورا الباب… صندوق هديه. بس لازم تضغطين عليه عشان يفتح.",
+      choices: [
+        { label:"اروح للنهايه", next:"GO_LOVE", sfx:"win" }
+      ]
+    },
+
+    crossToHub: {
+      text: "رجعتي للنص القرار بيدج.",
+      choices: [
+        { label:"يسار", next:"pathLeft", sfx:"step" },
+        { label:"يمين", next:"pathRight", sfx:"step" },
+        { label:"تحت", next:"pathDown", sfx:"step" }
+      ]
+    }
+  };
+
+  // ===================== تشغيل عقدة =====================
+  let currentNodeKey = null;
+  let inReplyMode = false;
+
+  function renderNode(key){
+    currentNodeKey = key;
+
+    // انتقال خاص للنهاية
+    if(key === "GO_LOVE"){
+      showLove();
+      return;
+    }
+
+    const node = NODES[key];
+    if(!node) return;
+
+    inReplyMode = false;
+
+    nodeNext.style.display = "none";
+    nodeChoices.innerHTML = "";
+
+    restartTypewriter(nodeText);
+    nodeText.textContent = node.text;
+
+    // خيارات
+    (node.choices || []).forEach(ch => {
+      const b = document.createElement("button");
+      b.className = "btn";
+      b.textContent = ch.label;
+
+      b.onclick = () => {
+        // مؤثرات
+        if(ch.flash) flash(ch.flash, 90);
+        if(ch.sfx && SFX[ch.sfx]) play(SFX[ch.sfx]);
+        else if(SFX.step) play(SFX.step);
+
+        // أخفي الأزرار لحظة (إحساس لعبة)
+        nodeChoices.querySelectorAll("button").forEach(x => x.disabled = true);
+
+        // انتقال بعد لحظة صغيرة
+        setTimeout(() => {
+          // لو يبي يروح للـ hub
+          if(ch.next === "pathLeft" || ch.next === "pathRight" || ch.next === "pathDown" || ch.next === "crossToHub"){
+            showScene("node");
+            renderNode(ch.next);
+            return;
+          }
+          renderNode(ch.next);
+        }, 280);
+      };
+
+      nodeChoices.appendChild(b);
+    });
+  }
+
+  // ===================== النهاية / رسالة الحب =====================
+  function showLove(){
+    showScene("love");
+    loveIntro.style.display = "none";
+    giftPng.style.display = "none";
+    loveMsgBox.style.display = "none";
+
+    // هدوء نهاية + موسيقى لطيفة
+    if(SFX.win) play(SFX.win);
+
+    setTimeout(() => { loveIntro.style.display = "block"; }, 650);
+    setTimeout(() => { giftPng.style.display = "inline-block"; }, 1400);
+
+    giftPng.onclick = () => {
+      giftPng.style.pointerEvents = "none";
+      flash("white", 120);
+
+      loveMessage.textContent = LOVE_LETTER;
+      loveMsgBox.style.display = "block";
+
+      // قللي الرعب بالنهاية
+      try{ SFX.rumble.volume = 0.08; }catch(e){}
+      try{ SFX.drip.volume = 0.35; }catch(e){}
+    };
+
+    closeBtn.onclick = () => {
+      // قفل باسم فرح
+      lockText.innerHTML = `تم… <span style="color:#ff69b4">احبج</span> ❤️`;
+      lockScreen.classList.add("active");
+
+      // اختياري: بعد ثانيتين يقفل/يحول
+      setTimeout(() => {
+        // تقدر تخليها about:blank لو تبي "يقفل"
+        window.location.href = "about:blank";
+      }, 2200);
+    };
+  }
+
+  // ===================== بداية اللعبة (سقوط + فتح عين) =====================
+function startExperience(){
+  startScreen.classList.add("hidden");
+
+  // أصوات خلفية
+  play(SFX.drip);
+  play(SFX.rumble);
+
+  // روح لمشهد الصحوة
+  showScene("wake");
+
+  const fadeCurtain = document.getElementById("fadeCurtain");
+  const fallEmoji = document.getElementById("fallEmoji");
+
+  // سواد كامل بالبداية + إعادة تشغيل الانميشن
+  fadeCurtain.classList.remove("eye-open");
+  fadeCurtain.style.opacity = "1";
+  void fadeCurtain.offsetWidth;
+
+  // سقوط الإيموجي + صوت السقوط
+  setTimeout(() => {
+    play(SFX.fall);
+    fallEmoji.classList.remove("slam");
+    fallEmoji.classList.add("drop");
+    flash("white", 120);
+    setTimeout(() => flash("red", 90), 140);
+  }, 150);
+
+  // “ارتطام”
+  setTimeout(() => {
+    fallEmoji.classList.remove("drop");
+    fallEmoji.classList.add("slam");
+  }, 1050);
+
+  // فتح العين (fade in واقعي)
+  setTimeout(() => {
+    fadeCurtain.classList.add("eye-open");
+  }, 1200);
+
+  // يظهر نص الصحوة وزر قومي
+  setTimeout(() => { wakeLine2.style.display = "block"; }, 1800);
+  setTimeout(() => { wakeBtn.style.display = "inline-block"; }, 2600);
+
+  wakeBtn.onclick = () => {
+    flash("white", 80);
+    showScene("hub");
+  };
+
+  // أزرار الـ hub (مرة وحدة فقط)
+  scenes.hub.querySelectorAll("button[data-go]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const go = btn.getAttribute("data-go");
+      if(SFX.step) play(SFX.step);
+      showScene("node");
+      renderNode(go);
+    });
+  });
+
+
+  
+    // أزرار الـ hub
+    scenes.hub.querySelectorAll("button[data-go]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const go = btn.getAttribute("data-go");
+        if(SFX.step) play(SFX.step);
+        showScene("node");
+        renderNode(go);
+      });
+    });
+  }
+
+  // ===================== وقت الكاميرا =====================
+  function updateCamTime(){
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,"0");
+    const m = String(now.getMinutes()).padStart(2,"0");
+    const s = String(now.getSeconds()).padStart(2,"0");
+    camTime.textContent = `${h}:${m}:${s}`;
+  }
+
+  // ===================== INIT =====================
+  function init(){
+    // تحميل الخلفيات
+    applySceneLook("sceneWake");
+    applySceneLook("sceneHub");
+    applySceneLook("sceneNode");
+    applySceneLook("sceneLove");
+
+    loadAudio();
+    setInterval(updateCamTime, 1000);
+    updateCamTime();
+
+    // أول مشهد معلق لين زر البدء
+    showScene("wake"); // نخليه جاهز بس ما يبان بسبب start-screen فوقه
+
+    startBtn.addEventListener("click", () => {
+      startExperience();
+    });
+  }
+
+  window.addEventListener("load", init);
+})();
+</script>
+</body>
+</html>
